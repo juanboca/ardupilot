@@ -31,7 +31,7 @@ static void circle_run()
 {
     float target_yaw_rate = 0;
     float target_climb_rate = 0;
-
+    printf("%s\n", "esto es un TESTEEEEEEE  asd" );
     // if not auto armed set throttle to zero and exit immediately
     if(!ap.auto_armed || ap.land_complete) {
         // To-Do: add some initialisation of position controllers
@@ -63,14 +63,42 @@ static void circle_run()
     }
 
     // run circle controller
-    circle_nav.update();
+    // circle_nav.update();
 
-    // call attitude controller
-    if (circle_pilot_yaw_override) {
-        attitude_control.angle_ef_roll_pitch_rate_ef_yaw(circle_nav.get_roll(), circle_nav.get_pitch(), target_yaw_rate);
-    }else{
-        attitude_control.angle_ef_roll_pitch_yaw(circle_nav.get_roll(), circle_nav.get_pitch(), circle_nav.get_yaw(),true);
+    // // call attitude controller
+    // if (circle_pilot_yaw_override) {
+    //     printf("%s %i %i \n", "Por el True:", circle_nav.get_roll(), circle_nav.get_pitch());
+    //     attitude_control.angle_ef_roll_pitch_rate_ef_yaw(circle_nav.get_roll(), circle_nav.get_pitch(), target_yaw_rate);
+    // }else{
+    //     printf("%s %i %i \n", "Por el False:", circle_nav.get_roll(), circle_nav.get_pitch());
+    //     attitude_control.angle_ef_roll_pitch_yaw(circle_nav.get_roll(), circle_nav.get_pitch(), circle_nav.get_yaw(),true);
+    // }
+
+    int turn_yaw = 0;
+    switch(circle_nav.get_number_of_turns() % 4){
+        case 0:
+        turn_yaw = 9000;
+        break;
+    case 1:
+        turn_yaw = 18000;
+        break;
+    case 2:
+        turn_yaw = 27000;
+        break;
+    case 3:
+        turn_yaw = 36000;
+        break;
     }
+
+    // Move Forward
+    if(!circle_nav.square_turn_right()){
+        attitude_control.angle_ef_roll_pitch_yaw(0, -3000, turn_yaw, true);
+    } else {
+        attitude_control.angle_ef_roll_pitch_yaw(0, 0, turn_yaw, true);
+    }
+
+
+    circle_nav.update_square();
 
     // run altitude controller
     if (sonar_alt_health >= SONAR_ALT_HEALTH_MAX) {

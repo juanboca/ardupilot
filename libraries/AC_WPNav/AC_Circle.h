@@ -8,6 +8,8 @@
 #include <AP_InertialNav.h>     // Inertial Navigation library
 #include <AC_PosControl.h>      // Position control library
 
+#include <stdio.h>
+
 // loiter maximum velocities and accelerations
 #define AC_CIRCLE_RADIUS_DEFAULT    1000.0f     // radius of the circle in cm that the vehicle will fly
 #define AC_CIRCLE_RATE_DEFAULT      20.0f       // turn rate in deg/sec.  Positive to turn clockwise, negative for counter clockwise
@@ -48,6 +50,14 @@ public:
 
     /// update - update circle controller
     void update();
+
+    void update_square();
+
+    bool square_turn_right();
+
+    // float get_square_yaw() { return _square_yaw;};
+
+    int32_t get_number_of_turns() {return _number_of_turns; };
 
     /// get desired roll, pitch which should be fed into stabilize controllers
     int32_t get_roll() const { return _pos_control.get_roll(); }
@@ -99,5 +109,8 @@ private:
     float       _angular_vel;   // angular velocity in radians/sec
     float       _angular_vel_max;   // maximum velocity in radians/sec
     float       _angular_accel; // angular acceleration in radians/sec/sec
+    float       _total_distance_in_this_direction;
+    // float       _square_yaw;
+    int32_t     _number_of_turns;
 };
-#endif	// AC_CIRCLE_H
+#endif  // AC_CIRCLE_H

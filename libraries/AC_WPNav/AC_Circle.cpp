@@ -39,7 +39,8 @@ AC_Circle::AC_Circle(const AP_InertialNav& inav, const AP_AHRS& ahrs, AC_PosCont
     _angle_total(0.0f),
     _angular_vel(0.0f),
     _angular_vel_max(0.0f),
-    _angular_accel(0.0f)
+    _angular_accel(0.0f),
+    _total_distance_in_this_direction(0.0f)
 {
     AP_Param::setup_object_defaults(this, var_info);
 }
@@ -152,6 +153,62 @@ void AC_Circle::update()
 
         // update position controller
         _pos_control.update_xy_controller(AC_PosControl::XY_MODE_POS_ONLY, 1.0f);
+    }
+}
+
+void AC_Circle::update_square(){
+    // calculate dt
+    float dt = _pos_control.time_since_last_xy_update();
+
+    Vector3f target;
+    target.x = _center.x + 100;
+    target.y = _center.y;
+    target.z = _pos_control.get_alt_target();
+
+    _pos_control.set_pos_target(target);
+
+    // update circle position at poscontrol update rate
+    float dt_xy = _pos_control.get_dt_xy();
+    _total_distance_in_this_direction = _total_distance_in_this_direction + dt_xy;
+
+
+    // get current position
+    const Vector3f &curr_pos = _inav.get_position();
+
+    // calc vector from current location to circle center
+    Vector2f vec;   // vector from circle center to current location
+    vec.x = (curr_pos.x - _center.x);
+    vec.y = (curr_pos.y - _center.y);
+    float dist = pythagorous2(vec.x, vec.y);
+
+    // printf("%s %f \n", "Veamos el dt:", _pos_control.get_accel_xy());
+    // printf("%s %f \n", "Veamos el otro:", _pos_control.get_speed_xy());
+
+    printf("%s %f \n", "Veamos el curr_pos:", curr_pos.x);
+    printf("%s %f \n", "Veamos el curr_pos:", curr_pos.y);
+    printf("%s %f \n", "Veamos el curr_pos:", curr_pos.z);
+    printf("%s %f \n", "Veamos el center:", _center.x);
+    printf("%s %f \n", "Veamos el center:", _center.y);
+    printf("%s %f \n", "Veamos el center:", _center.z);
+    printf("%s %f \n", "Veamos el vec.x:", vec.x);
+    printf("%s %f \n", "Veamos el vec.y:", vec.y);
+    printf("%s %f \n", "Veamos el dist:", dist);
+    printf("%s %f \n", "Veamos la distancia recorrida:", _total_distance_in_this_direction);
+}
+
+bool AC_Circle::square_turn_right(){
+    if(_total_distance_in_this_direction > 20){
+        // if(_total_secs_turning_right < 3){
+        //     _total_secs_turning_right += 0.05;
+        //     return true;
+        // } else{
+        _number_of_turns++;
+        // _square_yaw = 0;
+        _total_distance_in_this_direction = 0;
+        return true;
+        // }
+    } else {
+        return false;
     }
 }
 
